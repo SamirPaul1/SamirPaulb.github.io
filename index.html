@@ -1,154 +1,115 @@
-<html lang="en-US">
-  <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#ff473e">
-    <!-- Primary Meta Tags -->
-    <title>Static Assets Storage | Samir Paul</title>
-    <meta name="title" content="Static Assets Storage - SamirPaulb">
-    <meta name="description" content="Static Assets Storage">
-    <meta name="keywords" content="Static Assets Storage"/>
-    <link rel="shortcut icon" href="favicon.ico">
-    <link rel="canonical" href="https://samirpaulb.github.io/" />
-    
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://samirpaulb.github.io/">
-    <meta property="og:title" content="Static Assets Storage">
-    <meta property="og:description" content="Static Assets Storage">
-    <meta property="og:image" content="static-assets-storage.jpg">
 
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://samirpaulb.github.io/">
-    <meta property="twitter:title" content="Static Assets Storage - SamirPaulb">
-    <meta property="twitter:description" content="Static Assets Storage">
-    <meta property="twitter:image" content="static-assets-storage.jpg">
-    <meta name="google-site-verification" content="vJAOBxbJTCK2vXG-hLFeGsoC9hXgFlCpuJJ8AcJLROQ" />
+<!-- Author : Samir Paul -->
+<!DOCTYPE html>
+<html lang="en">
 
-    <link rel="canonical" href="https://samirpaulb.github.io/">
-    <link rel="stylesheet" href="style.css">
-    <link rel="icon" href="./favicon.ico" type="image/png" />
-    <link rel="manifest" href="./manifest.json">
-    <link rel="apple-touch-icon" sizes="180x180" href="favicon.ico">
-    <link type="application/opensearchdescription+xml" rel="search" href="./search.xml"/>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge" >
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" >
 
-    <style>
-      body {
-        overflow-y: scroll;
-      }
-      .markdown-body h1 {
-        display: flex;
-      }
-      .markdown-body form {
-        margin-left: 10px;
-      }
-      .markdown-body input {
-        color: #808080;
-        font-weight: 400;
-        margin: 0;
-        padding: 0 10px;
-        border: 5px solid #d8dbdd;
-        border-radius: 100px;
-        width: 100%;
-        flex: 1 1;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="container-lg px-3 my-5 markdown-body">
-      <h1>
-        <a href="./">Assets</a>
-        <form id="search_form" autocomplete="on">
-          <input id="search_input" placeholder="🔍 Search Files" >
-        </form>
-      </h1>
-      <ul id="list">
-      </ul>
-    </div>
-    <script>
-      // Filter files by search term match and clean out non recipe files
-      const filterFiles = (filter) => {
-        filter = filter.toLowerCase()
-        return (file) => {
-          const filePath = file.path;
-          const fileName = filePath.replace('', '').toLowerCase().replace(/-/g, '');
-          const isMarkdown = (/.md$/).test(filePath);
-          const isNotLicense = filePath !== 'LICENSE.md';
-          const isInFilter = filter.split(' ')
-            .every((token) => fileName.indexOf(token.toLowerCase()) !== -1)
-          return true;
-        }
-      }
-      // Match by closest to start of word then earliest word
-      const matchScore = (file, filter) => {
-        const fileWords = file.name.replace('.md', '').toLowerCase().split('-');
-        filter = filter.toLowerCase()
-        let wordIndex;
-        let letterPosition;
-        for (wordIndex = 0; wordIndex < fileWords.length; wordIndex++) {
-          letterPosition = fileWords[wordIndex].indexOf(filter)
-          if (letterPosition > -1) break;
-        }
-        if (letterPosition < 0) {
-          letterPosition = 100;
-        }
-        return wordIndex + letterPosition * 100;
-      }
-      // Sort files by best match
-      const sortFiles = (filter) => {
-        filter = filter.toLowerCase()
-        return (fileA, fileB) => {
-          return matchScore(fileA, filter) < matchScore(fileB, filter) ? -1 : 1;
-        }
-      }
-      // Render search result list
-      const updateList = (data, filter = '') => {
-        let htmlString = '';
-        for (let file of data.filter(filterFiles(filter)).sort(sortFiles(filter))) {
-          const fileName = file.path.replace('.md', '');
-          const fileDisplayName = fileName.split('-').join(' ');
-          htmlString += `<li><a href="${fileName}">${fileDisplayName}</a></li>`;
-        }
-        document.getElementById('list').innerHTML = htmlString;
-      }
-      // Quick navigate to file if perfect match
-      const navigateToFile = (data, filter = '') => {
-        files = data.filter(filterFiles(filter));
-        if (files.length === 1) {
-          const fileName = files[0].path.replace('.md', '');
-          document.location = fileName;
-        }
-      }
-      (async () => {
-        // Get GitHub repository file info
-        const response = await fetch('https://api.github.com/repos/SamirPaulb/samirpaulb.github.io/contents/');
-        const data = await response.json();
-        // Initialize search fields and results
-        const search_form = document.getElementById('search_form');
-        const search_input = document.getElementById('search_input');
-        const search_value = decodeURIComponent(document.location.search.replace('?', '').replace(/\+/g, ' '));
-        search_input.value = search_value;
-        navigateToFile(data, search_value);
-        updateList(data, search_value);
-        // Configure search box events
-        search_form.addEventListener('submit', (event) => {
-          event.preventDefault();
-          navigateToFile(data, search_input.value);
-        })
-        search_input.addEventListener('input', (event) => {
-          updateList(data, event.target.value);
-        })
-        document.addEventListener('keypress', (event) => {
-          search_input.focus()
-        })
-      })()
-      // Register service worker
-      if (navigator.serviceWorker && !navigator.serviceWorker.controller) {
-        navigator.serviceWorker.register('./serviceworker.js');
-      }
-    </script>
-  <body>
+  <!-- Primary Meta Tags -->
+  <title>𝗦𝗔𝗠𝗜𝗥 𝗣𝗔𝗨𝗟 - Portfolio Website</title>
+  <link rel="shortcut icon" href="favicon.ico">
+  <meta name="title" content="𝗦𝗔𝗠𝗜𝗥 𝗣𝗔𝗨𝗟 - Portfolio Website">
+  <meta name="description" content="Hi There, I'm Samir Paul, a software developer with strong technical skills. Take a look at this portfolio website and feel free to connect with me.">
+  <meta name="keywords" content="About, Experience, Education, Resume, Projects, SamirPaul, SamirPaul1, SamirPaulb, Samir Paul NIT Durgapur, Samir Paul Website, samirpaul.in, samirpaul.com, samir.com, paulsamir.com, samirp.com, Samir Paul GitHub, .in, SamirPaul.in, Coding Profiles, Contact, Coding, Python, Problem-Solving, Data Structure, Algorithms, Software Engineer, Software Developer, NIT Durgapur, LinkedIn, GitHub, Portfolio, Website, Profile, Links, SamirPaul, SamirPaul1, SamirPaulb, Samir Paul, SamirPll, samirpaul1, smrpb, Samir Paul twitter, MACHINE LEARNING, OPENSOURCE, MYSQL, PYTHON3, LeetCode, CodeChef, HackerRank, GFG, competitive coding, samir.pages.dev, samirpaul.pages.dev, samirpaul.vercel.app, samirpaul.is-a.dev, samirpaul.netlify.app, samirpaul.glitch.me, programming, internship, SEO, projects, git, tech,  tech news,  github, portfolio, personal website, NIT Durgapur, National Institute of Technology Durgapur, IIT, West Bengal, India, software developer, coaching, coding, google, amazon, meta, faang, maangm, maang, project management, microsoft, netflix, apple, usa, seattle, blog, personal blog, tech article, new technology, student, B.Tech, ECE, electronics and communication technology, Samir Paul, SamirPaul1, samirpaul.com, samirpaul.net, samir paul linkedin, samirpaul, personal branding, graduation, backend, fullstack, development, SDE, SWE, Samir, SamirP"/>
+  <meta name="robots" content="INDEX, FOLLOW">
+  <meta name="robots" content="index, follow"/>
+  <meta name="p:domain_verify" content="24bac6e1fbf1750de40d59bb788d9dd9"/>
+  <meta name="p:domain_verify" content="24bac6e1fbf1750de40d59bb788d9dd9"/>
+  <meta name="msvalidate.01" content="1A92FC2EC113F8616A21D76DA684A133" />
+  <meta name="yandex-verification" content="fe6a06c57be84984" />
+  <meta name="yandex-verification" content="39e29790ebc96010" />
+  <meta name="facebook-domain-verification" content="3pkgruuk3kzlsn3jdfehgbd4sem1qb" />
+  <meta name="google-site-verification" content="tTMVzrqoAcZ0jIPOokXcTMAEaj5XHbk2aQcAFyjAtf0" />
+  <meta name="google-site-verification" content="uziThFIJ1huzKLCKv-DChPbWZTRRFqmmdA6pcA-dqzs" />
+  <meta name="google-site-verification" content="fVqw6aziPBBMvC50fkQ3A6y38AhIfhUhfDyIzqqdGTs" />
+  <meta name="google-site-verification" content="0xx-nlxp3UCpu_YITeTuMA4ld0Jup5hg69j-QNot0aU" />
+  <meta name="google-site-verification" content="YZkjOzwrUSuP4dJNNznzDnp1oGqYsVN9KuQPaZ9Q61o" />
+  <meta name="norton-safeweb-site-verification" content="j7w6winrjctu1-mcfpposj35ae-2txdr3qhqt9edmam0gf98j9qtpixft-qv452wjund2cyc9jacd71w81ee6addfggzcmr-affl9b3eblxul7768d9d5dh2fjkupp1h" />
+  <!-- Open Graph general (Facebook, Pinterest & Google+) -->
+  <meta name="og:title" content="𝗦𝗔𝗠𝗜𝗥 𝗣𝗔𝗨𝗟 - Portfolio Website">
+  <meta name="og:description" content="Hi There, I'm Samir Paul, a software developer with strong technical skills. Take a look at this portfolio website and feel free to connect with me.">
+  <meta name="og:image" content="https://raw.githubusercontent.com/SamirPaulb/assets/main/samir.webp"> 
+  <meta name="og:url" content="https://samirpaulb.github.io/">
+  <meta name="og:site_name" content="𝗦𝗔𝗠𝗜𝗥 𝗣𝗔𝗨𝗟 - Portfolio Website">
+  <meta name="og:locale" content="en_US">
+  <meta name="fb:admins" content="SamirPaulb">
+  <meta name="og:type" content="website">
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="𝗦𝗔𝗠𝗜𝗥 𝗣𝗔𝗨𝗟 - Portfolio Website">
+  <meta name="twitter:description" content="Hi There, I'm Samir Paul, a software developer with strong technical skills. Take a look at this portfolio website and feel free to connect with me.">
+  <meta name="twitter:site" content="@SamirPaulb">
+  <meta name="twitter:creator" content="@SamirPaulb">
+  <meta name="twitter:image:src" content="https://raw.githubusercontent.com/SamirPaulb/assets/main/samir.webp">
+  <link rel="canonical" href="https://samirpaulb.github.io/"/>
+	
+	<style type="text/css">
+		html {
+			overflow: auto;
+		}
+		
+		html,
+		body,
+		div,
+		iframe {
+			margin: 0px;
+			padding: 0px;
+			height: 100%;
+			border: none;
+		}
+		
+		iframe {
+			display: block;
+			width: 100%;
+			border: none;
+			overflow-y: auto;
+			overflow-x: hidden;
+		}
+	</style>
+
+	
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-CP4QE6ZEV0"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-CP4QE6ZEV0');
+</script>
+	
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('service-worker.js');
+}
+
+document.querySelector('#show').addEventListener('click', () => {
+  const iconUrl = document.querySelector('select').selectedOptions[0].value;
+  let imgElement = document.createElement('img');
+  imgElement.src = iconUrl;
+  document.querySelector('#container').appendChild(imgElement);
+});
+</script>
+
+
+</head>
+
+<body>
+	<noscript title="No JavaScript Support"> <h1>You need to enable JavaScript to run this app.</h1> </noscript>
+	
+	<iframe src="https://samirpaul1.github.io/"
+			frameborder="0"
+			marginheight="0"
+			marginwidth="0"
+			width="100%"
+			height="100%"
+			scrolling="auto">
+</iframe>
+
+	
+</body>
+
 </html>
